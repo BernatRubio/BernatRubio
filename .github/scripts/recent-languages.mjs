@@ -13,6 +13,7 @@
 //   AUTHORS       optional  comma-separated logins/emails, default: GH_USER
 //   DAYS          optional  look-back window in days, default 14
 //   LIMIT         optional  max languages shown, default 8
+//   THRESHOLD     optional  hide languages under this percentage, default 1
 //   MAX_COMMITS   optional  max commits analyzed, default 300
 //   CATEGORIES    optional  linguist categories to keep, default "programming,markup"
 //   IGNORED       optional  comma-separated language names to hide, e.g. "HTML,CSS"
@@ -188,12 +189,15 @@ export async function collect({ token, user, authors, days, maxCommits, skippedR
 // ---------------------------------------------------------------------------
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" })[c])
 
-export function rank(totals, { categories, ignored, limit }) {
+export function rank(totals, { categories, ignored, limit, threshold = 0 }) {
   const rows = Object.entries(totals)
     .filter(([name, n]) => n > 0 && categories.has(L[name]?.[1]) && !ignored.has(name.toLowerCase()))
     .sort((a, b) => b[1] - a[1])
   const sum = rows.reduce((s, [, n]) => s + n, 0)
-  return rows.slice(0, limit).map(([name, n]) => ({ name, lines: n, pct: (n / sum) * 100, color: L[name][0] }))
+  return rows
+    .map(([name, n]) => ({ name, lines: n, pct: (n / sum) * 100, color: L[name][0] }))
+    .filter((l) => l.pct >= threshold)
+    .slice(0, limit)
 }
 
 export function render(langs, { title, days, commits, repos }) {
@@ -225,7 +229,7 @@ export function render(langs, { title, days, commits, repos }) {
       const cy = legendY + (i % rows) * rowH
       return `<g transform="translate(${cx},${cy})"><circle cx="5" cy="-4" r="5" fill="${l.color}"/>` +
         `<text x="16" y="0" class="name">${esc(l.name)}</text>` +
-        `<text x="${colW - 12}" y="0" class="muted" text-anchor="end">${l.pct.toFixed(1)}%</text></g>`
+        `<text x="${colW - 12}" y="0" class="muted" text-anchor="end">${l.pct < 0.1 ? "&lt;0.1" : l.pct.toFixed(1)}%</text></g>`
     }).join("")
   }
 
@@ -266,6 +270,7 @@ async function main() {
     categories: new Set(list(env.CATEGORIES || "programming,markup")),
     ignored: new Set(list(env.IGNORED).map((n) => n.toLowerCase())),
     limit: Number(env.LIMIT || 8),
+    threshold: Number(env.THRESHOLD ?? 1),
   })
   const output = env.OUTPUT || "recent-languages.svg"
   writeFileSync(output, render(langs, { title: env.TITLE || "Recently used languages", days, commits, repos }))
