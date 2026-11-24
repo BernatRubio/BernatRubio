@@ -1,5 +1,5 @@
 // Generates an SVG of the languages you recently committed in.
-// Runs on Node 20+ with no dependencies (uses built-in fetch).
+// Runs on Node 24+ with no dependencies (uses built-in fetch).
 //
 // How it works:
 //   1. Lists GH_USER's public repositories that were pushed to in the last DAYS days
