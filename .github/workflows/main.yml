@@ -15,5 +15,6 @@ jobs:
         with:
           token: ${{ secrets.METRICS_TOKEN }}
           plugin_languages: yes
+          plugin_languages_indepth: yes
           plugin_languages_sections: recently-used
-          commits_authoring: bernat.github@proton.me
+          commits_authoring: bernat.github@proton.me, BernatRubio
