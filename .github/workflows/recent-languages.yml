@@ -1,8 +1,12 @@
 name: Recent languages
 on:
-  schedule: [{cron: "0 3 * * *"}]
+  schedule:
+  - cron: "0 4 * * *"
+    timezone: "Europe/Madrid"
   workflow_dispatch:
-  push: {branches: [main]}
+  push:
+    branches:
+      - main
 
 jobs:
   recent-languages:
